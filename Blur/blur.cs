@@ -146,7 +146,7 @@ namespace Blur
             //Apply a box filter by convolving the image with two separate 1D kernels (faster)
             return Convolve(Convolve(new Bitmap(img), GetHorizontalFilter(size), box), GetVerticalFilter(size), box);
         }
-        public Image ClipToCircle(Image srcImage, Image blurImage, PointF center, float radius, Color backGround)
+        public Image ClipToCircle(Image srcImage, Image blurImage, PointF center, float radius, Rectangle box)
         {
             Image dstImage = new Bitmap(srcImage.Width, srcImage.Height, srcImage.PixelFormat);
 
@@ -167,8 +167,9 @@ namespace Blur
                 g.DrawImage(srcImage, 0, 0);
                 // adds the new ellipse & draws the image again 
                 GraphicsPath path = new GraphicsPath();
-                
-                path.AddEllipse(xy);
+
+                //path.AddEllipse(r);
+                path.AddEllipse(box.X, box.Y, box.Width, box.Height);
                 g.SetClip(path);
                 g.DrawImage(blurImage, 0, 0);
 
