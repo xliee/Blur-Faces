@@ -37,7 +37,7 @@ namespace Blur
 
         private void button1_Click(object sender, EventArgs e)
         {
-            _cascadeClassifier = new CascadeClassifier(@"W:\Documents\Web\c++\face_detect_n_track-master\haarcascade_frontalface_default.xml");
+            _cascadeClassifier = new CascadeClassifier(@"haarcascade_frontalface_default.xml");
             using (var imageFrame = _capture.QueryFrame().ToImage<Bgr, Byte>())
             {
                 Bitmap frame =imageFrame.ToBitmap();
@@ -54,8 +54,8 @@ namespace Blur
 
                         //frame2.Draw(face, new Bgr(Color.BurlyWood), 2); //the detected face(s) is highlighted here using a box that is drawn around it/them
 
-                        frame = blurer.FastBoxBlur(frame2.Bitmap, 20, new Rectangle() { X = face.X, Y = face.Y, Width = face.Width, Height = face.Height });
-                        frame = (Bitmap)blurer.ClipToCircle(frame2.Bitmap, frame, new Point(face.X + face.Width / 2, face.Y + face.Height / 2), face.Width / 2, new Rectangle() { X = face.X, Y = face.Y, Width = face.Width, Height = face.Height });
+                        frame = blurer.FastBoxBlur(frame2.Bitmap, 20, face);
+                        frame = (Bitmap)blurer.ClipToCircle(frame2.Bitmap, frame, new Point(face.X + face.Width / 2, face.Y + face.Height / 2), face.Width / 2, face);
                         
                     }
                 }

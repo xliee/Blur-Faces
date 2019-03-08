@@ -38,7 +38,7 @@ namespace Blur
 
         private void button1_Click(object sender, EventArgs e)
         {
-            _cascadeClassifier = new CascadeClassifier(@"W:\Documents\Web\c++\face_detect_n_track-master\haarcascade_frontalface_default.xml");
+            _cascadeClassifier = new CascadeClassifier(@"haarcascade_frontalface_default.xml");
             if (openFileDialog1.ShowDialog() == DialogResult.OK) {
                 string path = openFileDialog1.FileName;
 
