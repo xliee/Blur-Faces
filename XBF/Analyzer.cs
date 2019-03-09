@@ -14,11 +14,16 @@ namespace XBF
     {
         private bool DEBUG = false;
         private blur blurer;
+        private String ssdFile;
+        private String ssdProtoFile;
+        private String facemarkFileName;
 
-
-        public Analyzer(bool Debug = false)
+        public Analyzer(bool Debug = false, String ssdFile = "res10_300x300_ssd_iter_140000.caffemodel", String ssdProtoFile = "deploy.prototxt", String facemarkFileName = "deploy.prototxt")
         {
             this.DEBUG = Debug;
+            this.ssdFile = ssdFile;
+            this.ssdProtoFile = ssdProtoFile;
+            this.facemarkFileName = facemarkFileName;
             blurer = new blur();
         }
         /// <summary>
@@ -109,8 +114,8 @@ namespace XBF
         {
             int imgDim = 300;
             MCvScalar meanVal = new MCvScalar(104, 177, 123);
-            String ssdFile = "res10_300x300_ssd_iter_140000.caffemodel";
-            String ssdProtoFile = "deploy.prototxt";
+            String ssdFile = this.ssdFile;
+            String ssdProtoFile = this.ssdProtoFile;
 
             List<Rectangle> faceRegions = ((faces==null)?getFaceRegions(img, ssdProtoFile, ssdFile, imgDim):faces);
            
@@ -119,9 +124,11 @@ namespace XBF
             {
                 if(DEBUG)
                     CvInvoke.Rectangle(img, faceRegions[j], new MCvScalar(0, 255, 0));
-                
+                Mat img2 = img;
                 //Blur Oval
                 img = new Image<Bgr, Byte>((Bitmap)blurer.BlurRectangle(img.ToImage<Bgr, byte>().Bitmap, faceRegions[j])).Mat;
+                
+                
             }
             return img;
 
@@ -133,16 +140,16 @@ namespace XBF
         /// </summary>
         /// <param name="img">Source image</param>
         /// <returns> Returns the image with the faces blurred inside the landmarks of each face</returns>
-        public Mat BlurFaceWithLandmark(Mat img)
+        public Mat BlurFaceWithLandmark(Mat img, List<Rectangle> faces = null, List<VectorOfVectorOfPointF> landmarks_ = null, String ssdFile_ = null, String ssdProtoFile_ = null, String facemarkFileName_ = null)
         {
             int imgDim = 300;
             MCvScalar meanVal = new MCvScalar(104, 177, 123);
-            String ssdFile = "res10_300x300_ssd_iter_140000.caffemodel";
-            String ssdProtoFile = "deploy.prototxt";
-            String facemarkFileName = "lbfmodel.yaml";
+            String ssdFile = (ssdFile_ == null ? this.ssdFile : ssdFile_);
+            String ssdProtoFile = (ssdProtoFile_ == null ? this.ssdProtoFile : ssdProtoFile_);
+            String facemarkFileName = (facemarkFileName_ == null ? this.facemarkFileName : facemarkFileName_);
 
-            List<Rectangle> faceRegions = getFaceRegions(img, ssdProtoFile, ssdFile, imgDim);
-            List<VectorOfVectorOfPointF> landmarks = getLandmarks(img, faceRegions, facemarkFileName);
+            List<Rectangle> faceRegions = ((faces == null) ? getFaceRegions(img, ssdProtoFile, ssdFile, imgDim) : faces);
+            List<VectorOfVectorOfPointF> landmarks = ((landmarks_ == null) ? getLandmarks(img, faceRegions, facemarkFileName) : landmarks_);
             
             int numFaces = faceRegions.Count;
             for (int j = 0; j <= faceRegions.Count - 1; j++)

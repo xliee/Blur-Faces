@@ -40,7 +40,7 @@ namespace XBF
 
         public Image BlurPath(Image srcImage, PointF[] path, Rectangle face)
         {
-            FastBoxBlur(srcImage, 20, new Rectangle() { X = face.X, Y = face.Y, Width = face.Width, Height = face.Height });
+            Bitmap firstb = FastBoxBlur(srcImage, 20, new Rectangle() { X = face.X, Y = face.Y, Width = face.Width, Height = face.Height });
             Image bluredImage = new Bitmap(srcImage.Width, srcImage.Height, srcImage.PixelFormat);
 
             using (Graphics g = Graphics.FromImage(bluredImage))
@@ -61,11 +61,11 @@ namespace XBF
                 GraphicsPath ppath = new GraphicsPath();
                 //ppath.AddPolygon(path);
                 //path.AddEllipse(r);
-                ppath.AddEllipse(face);
-                g.DrawLines(new Pen(new SolidBrush(Color.Green), 1), path);
+                //ppath.AddEllipse(face);
+                g.DrawLines(new Pen(new SolidBrush(Color.Green), 2), path);
 
                 g.SetClip(ppath);
-                g.DrawImage(bluredImage, 0, 0);
+                g.DrawImage(firstb, 0, 0);
 
                 return bluredImage;
             }
@@ -73,7 +73,7 @@ namespace XBF
 
         public Image BlurRectangle(Image srcImage, Rectangle face)
         {
-            FastBoxBlur(srcImage, 20, new Rectangle() { X = face.X, Y = face.Y, Width = face.Width, Height = face.Height });
+            Bitmap firstb =  FastBoxBlur(srcImage, 20, face);
             Image bluredImage = new Bitmap(srcImage.Width, srcImage.Height, srcImage.PixelFormat);
 
             using (Graphics g = Graphics.FromImage(bluredImage))
@@ -98,7 +98,7 @@ namespace XBF
                 //g.DrawLines(new Pen(new SolidBrush(Color.Green), 1), path);
 
                 g.SetClip(Gpath);
-                g.DrawImage(bluredImage, 0, 0);
+                g.DrawImage(firstb, 0, 0);
 
                 return bluredImage;
             }
