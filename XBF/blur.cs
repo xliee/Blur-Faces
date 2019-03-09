@@ -1,16 +1,110 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 
 namespace XBF
 {
     class blur
     {
+        public Image ClipToCircle(Image srcImage, Image blurImage, PointF center, float radius, Rectangle box)
+        {
+            Image dstImage = new Bitmap(srcImage.Width, srcImage.Height, srcImage.PixelFormat);
+
+            using (Graphics g = Graphics.FromImage(dstImage))
+            {
+                RectangleF r = new RectangleF(center.X - radius, center.Y - radius,
+                                                         radius * 2, radius * 2);
+
+                // enables smoothing of the edge of the circle (less pixelated)
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+
+                // fills background color
+                //using (Brush br = new SolidBrush(backGround))
+                //{
+                //    g.FillRectangle(br, 0, 0, dstImage.Width, dstImage.Height);
+                //}
+
+                g.DrawImage(srcImage, 0, 0);
+                // adds the new ellipse & draws the image again 
+                GraphicsPath path = new GraphicsPath();
+
+                //path.AddEllipse(r);
+                path.AddEllipse(box);
+                g.SetClip(path);
+                g.DrawImage(blurImage, 0, 0);
+
+                return dstImage;
+            }
+        }
+
+        public Image BlurPath(Image srcImage, PointF[] path, Rectangle face)
+        {
+            FastBoxBlur(srcImage, 20, new Rectangle() { X = face.X, Y = face.Y, Width = face.Width, Height = face.Height });
+            Image bluredImage = new Bitmap(srcImage.Width, srcImage.Height, srcImage.PixelFormat);
+
+            using (Graphics g = Graphics.FromImage(bluredImage))
+            {
+                //RectangleF r = new RectangleF(center.X - radius, center.Y - radius,radius * 2, radius * 2);
+
+                // enables smoothing of the edge of the circle (less pixelated)
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+
+                // fills background color
+                //using (Brush br = new SolidBrush(backGround))
+                //{
+                //    g.FillRectangle(br, 0, 0, dstImage.Width, dstImage.Height);
+                //}
+
+                g.DrawImage(srcImage, 0, 0);
+                // adds the new ellipse & draws the image again 
+                GraphicsPath ppath = new GraphicsPath();
+                //ppath.AddPolygon(path);
+                //path.AddEllipse(r);
+                ppath.AddEllipse(face);
+                g.DrawLines(new Pen(new SolidBrush(Color.Green), 1), path);
+
+                g.SetClip(ppath);
+                g.DrawImage(bluredImage, 0, 0);
+
+                return bluredImage;
+            }
+        }
+
+        public Image BlurRectangle(Image srcImage, Rectangle face)
+        {
+            FastBoxBlur(srcImage, 20, new Rectangle() { X = face.X, Y = face.Y, Width = face.Width, Height = face.Height });
+            Image bluredImage = new Bitmap(srcImage.Width, srcImage.Height, srcImage.PixelFormat);
+
+            using (Graphics g = Graphics.FromImage(bluredImage))
+            {
+                //RectangleF r = new RectangleF(center.X - radius, center.Y - radius,radius * 2, radius * 2);
+
+                // enables smoothing of the edge of the circle (less pixelated)
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+
+                // fills background color
+                //using (Brush br = new SolidBrush(backGround))
+                //{
+                //    g.FillRectangle(br, 0, 0, dstImage.Width, dstImage.Height);
+                //}
+
+                g.DrawImage(srcImage, 0, 0);
+                // adds the new ellipse & draws the image again 
+                GraphicsPath Gpath = new GraphicsPath();
+                //ppath.AddPolygon(path);
+                //path.AddEllipse(r);
+                Gpath.AddEllipse(face);
+                //g.DrawLines(new Pen(new SolidBrush(Color.Green), 1), path);
+
+                g.SetClip(Gpath);
+                g.DrawImage(bluredImage, 0, 0);
+
+                return bluredImage;
+            }
+        }
+
+
         private Bitmap Convolve(Bitmap input, float[,] filter, Rectangle box)
         {
             //Find center of filter
@@ -80,7 +174,7 @@ namespace XBF
 
             return output;
         }
-
+   
         /// <summary>
         /// Returns a box filter 1D kernel that is in the format {1,..,n}
         /// </summary>
@@ -146,68 +240,6 @@ namespace XBF
         {
             //Apply a box filter by convolving the image with two separate 1D kernels (faster)
             return Convolve(Convolve(new Bitmap(img), GetHorizontalFilter(size), box), GetVerticalFilter(size), box);
-        }
-        public Image ClipToCircle(Image srcImage, Image blurImage, PointF center, float radius, Rectangle box)
-        {
-            Image dstImage = new Bitmap(srcImage.Width, srcImage.Height, srcImage.PixelFormat);
-
-            using (Graphics g = Graphics.FromImage(dstImage))
-            {
-                RectangleF r = new RectangleF(center.X - radius, center.Y - radius,
-                                                         radius * 2, radius * 2);
-
-                // enables smoothing of the edge of the circle (less pixelated)
-                g.SmoothingMode = SmoothingMode.AntiAlias;
-
-                // fills background color
-                //using (Brush br = new SolidBrush(backGround))
-                //{
-                //    g.FillRectangle(br, 0, 0, dstImage.Width, dstImage.Height);
-                //}
-
-                g.DrawImage(srcImage, 0, 0);
-                // adds the new ellipse & draws the image again 
-                GraphicsPath path = new GraphicsPath();
-
-                //path.AddEllipse(r);
-                path.AddEllipse(box.X, box.Y, box.Width, box.Height);
-                g.SetClip(path);
-                g.DrawImage(blurImage, 0, 0);
-
-                return dstImage;
-            }
-        }
-
-        public Image BlurPath(Image srcImage, PointF[] path, Rectangle face)
-        {
-            FastBoxBlur(srcImage, 20, new Rectangle() { X = face.X, Y = face.Y, Width = face.Width, Height = face.Height });
-            Image bluredImage = new Bitmap(srcImage.Width, srcImage.Height, srcImage.PixelFormat);
-
-            using (Graphics g = Graphics.FromImage(bluredImage))
-            {
-                //RectangleF r = new RectangleF(center.X - radius, center.Y - radius,radius * 2, radius * 2);
-
-                // enables smoothing of the edge of the circle (less pixelated)
-                g.SmoothingMode = SmoothingMode.AntiAlias;
-
-                // fills background color
-                //using (Brush br = new SolidBrush(backGround))
-                //{
-                //    g.FillRectangle(br, 0, 0, dstImage.Width, dstImage.Height);
-                //}
-
-                g.DrawImage(srcImage, 0, 0);
-                // adds the new ellipse & draws the image again 
-                GraphicsPath ppath = new GraphicsPath();
-                ppath.AddPolygon(path);
-                //path.AddEllipse(r);
-                g.DrawLines(new Pen(new SolidBrush(Color.Green), 1),path);
-
-                g.SetClip(ppath);
-                g.DrawImage(bluredImage, 0, 0);
-
-                return bluredImage;
-            }
         }
 
     }
