@@ -5,8 +5,6 @@ VisualStudioVersion = 15.0.28307.438
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Blur OpenCv", "Blur OpenCv\Blur OpenCv.vcxproj", "{0A57BC52-0561-4BED-AD66-E7B6B60B2A23}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blur", "Blur\Blur.csproj", "{2D54F7BD-B9DF-420D-8B2F-15443C95099D}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,18 +25,6 @@ Global
 		{0A57BC52-0561-4BED-AD66-E7B6B60B2A23}.Release|x64.Build.0 = Release|x64
 		{0A57BC52-0561-4BED-AD66-E7B6B60B2A23}.Release|x86.ActiveCfg = Release|Win32
 		{0A57BC52-0561-4BED-AD66-E7B6B60B2A23}.Release|x86.Build.0 = Release|Win32
-		{2D54F7BD-B9DF-420D-8B2F-15443C95099D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2D54F7BD-B9DF-420D-8B2F-15443C95099D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2D54F7BD-B9DF-420D-8B2F-15443C95099D}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{2D54F7BD-B9DF-420D-8B2F-15443C95099D}.Debug|x64.Build.0 = Debug|Any CPU
-		{2D54F7BD-B9DF-420D-8B2F-15443C95099D}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{2D54F7BD-B9DF-420D-8B2F-15443C95099D}.Debug|x86.Build.0 = Debug|Any CPU
-		{2D54F7BD-B9DF-420D-8B2F-15443C95099D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2D54F7BD-B9DF-420D-8B2F-15443C95099D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2D54F7BD-B9DF-420D-8B2F-15443C95099D}.Release|x64.ActiveCfg = Release|Any CPU
-		{2D54F7BD-B9DF-420D-8B2F-15443C95099D}.Release|x64.Build.0 = Release|Any CPU
-		{2D54F7BD-B9DF-420D-8B2F-15443C95099D}.Release|x86.ActiveCfg = Release|Any CPU
-		{2D54F7BD-B9DF-420D-8B2F-15443C95099D}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
