@@ -44,6 +44,7 @@ namespace Blur
 
                 Bitmap frame = (Bitmap)Image.FromFile(path);
                 Image<Bgr, Byte> imageFrame = new Image<Bgr, Byte>(frame);
+
                 if (imageFrame != null)
                 {
                     //List<Rectangle> faces = new List<Rectangle>();
@@ -106,7 +107,7 @@ namespace Blur
                 Bitmap frame = (Bitmap)Image.FromFile(path);
                 Image<Bgr, Byte> imageFrame = new Image<Bgr, Byte>(frame);
 
-                Analyzer analyzer = new Analyzer(true,  Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location) + @"\Assets\res10_300x300_ssd_iter_140000.caffemodel",  Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location) + @"\Assets\deploy.prototxt",  Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location) + @"\Assets\lbfmodel.yaml");
+                Analyzer analyzer = new Analyzer(false,  Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location) + @"\Assets\res10_300x300_ssd_iter_140000.caffemodel",  Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location) + @"\Assets\deploy.prototxt",  Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location) + @"\Assets\lbfmodel.yaml");
 
                 
                 pictureBox1.Image = analyzer.BlurFaceWithLandmark(imageFrame.Mat).ToImage<Bgr, Byte>().Bitmap;

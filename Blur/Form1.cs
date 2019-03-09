@@ -48,8 +48,10 @@ namespace Blur
                     var faces = _cascadeClassifier.DetectMultiScale(grayframe, 1.1, 3, Size.Empty); //the actual face detection happens here
                     foreach (var face in faces)
                     {
+                        
+
                         blur blurer = new blur();
-                        Image<Bgr, Byte> frame2 = new Image<Bgr, Byte>(frame);
+                        Image<Bgr, Byte> frame2 = imageFrame;
 
 
                         //frame2.Draw(face, new Bgr(Color.BurlyWood), 2); //the detected face(s) is highlighted here using a box that is drawn around it/them

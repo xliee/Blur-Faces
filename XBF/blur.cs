@@ -1,7 +1,10 @@
-﻿using System;
+﻿using Emgu.CV;
+using Emgu.CV.Util;
+using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
-
+using System.Linq;
 
 namespace XBF
 {
@@ -37,32 +40,64 @@ namespace XBF
                 return dstImage;
             }
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="srcImage"></param>
+        /// <param name="path"></param>
+        /// <param name="face"></param>
+        /// <returns></returns>
         public Image BlurPath(Image srcImage, PointF[] path, Rectangle face)
         {
-            Bitmap firstb = FastBoxBlur(srcImage, 20, new Rectangle() { X = face.X, Y = face.Y, Width = face.Width, Height = face.Height });
+            Bitmap firstb = FastBoxBlur(srcImage, 20, face);
             Image bluredImage = new Bitmap(srcImage.Width, srcImage.Height, srcImage.PixelFormat);
 
             using (Graphics g = Graphics.FromImage(bluredImage))
             {
-                //RectangleF r = new RectangleF(center.X - radius, center.Y - radius,radius * 2, radius * 2);
-
-                // enables smoothing of the edge of the circle (less pixelated)
                 g.SmoothingMode = SmoothingMode.AntiAlias;
-
-                // fills background color
-                //using (Brush br = new SolidBrush(backGround))
-                //{
-                //    g.FillRectangle(br, 0, 0, dstImage.Width, dstImage.Height);
-                //}
-
                 g.DrawImage(srcImage, 0, 0);
-                // adds the new ellipse & draws the image again 
+                
+
                 GraphicsPath ppath = new GraphicsPath();
-                //ppath.AddPolygon(path);
-                //path.AddEllipse(r);
-                //ppath.AddEllipse(face);
-                g.DrawLines(new Pen(new SolidBrush(Color.Green), 2), path);
+                //POINTS
+                float[] X = new float[path.Length];
+                float[] Y = new float[path.Length];
+                for (int i = 0; i<path.Length;i++)
+                {
+                    X[i] = path[i].X;
+                    Y[i] = path[i].Y;
+                }
+
+                //MEAN
+                float sumX = 0;
+                float sumY = 0;
+                for (int i = 0; i < X.Length; i++)
+                    sumX += X[i];
+                for (int i = 0; i < Y.Length; i++)
+                    sumY += Y[i];
+
+                float resultX = sumX / X.Length;
+                float resultY = sumY / Y.Length;
+                List<PointF> pathf = new List<PointF>();
+                for(int i = 0; i < path.Length; i++)
+                {
+                   if(CvInvoke.PointPolygonTest(new VectorOfPointF(path), path[i], false)!=1)
+                    {
+                        pathf.Add(path[i]);
+                    }
+                }
+                PointF center = new PointF(resultX, resultY);
+
+                
+
+
+                
+                g.DrawLines(new Pen(new SolidBrush(Color.Red), 3), pathf.ToArray());
+
+
+                g.DrawEllipse(new Pen(new SolidBrush(Color.Red), 5), center.X-10, center.Y-10, 10, 10);
+
+
 
                 g.SetClip(ppath);
                 g.DrawImage(firstb, 0, 0);
