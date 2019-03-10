@@ -144,7 +144,7 @@ namespace XBF
         /// </summary>
         /// <param name="img">Source image</param>
         /// <returns> Returns the image with the faces blurred inside the landmarks of each face</returns>
-        public Mat BlurFaceWithLandmark(Mat img, List<Rectangle> faces = null, List<VectorOfVectorOfPointF> landmarks_ = null, Bitmap Mask = null, String ssdFile_ = null, String ssdProtoFile_ = null, String facemarkFileName_ = null)
+        public Mat BlurFaceWithLandmark(Mat img, int BlurSize, List<Rectangle> faces = null, List<VectorOfVectorOfPointF> landmarks_ = null, Bitmap Mask = null, String ssdFile_ = null, String ssdProtoFile_ = null, String facemarkFileName_ = null)
         {
             int imgDim = 300;
             MCvScalar meanVal = new MCvScalar(104, 177, 123);
@@ -183,7 +183,7 @@ namespace XBF
                         Console.WriteLine(ex.ToString());
                     }
                 // Blur Path
-                img = new Image<Bgr, Byte>((Bitmap)blurer.BlurPath(img.ToImage<Bgr, byte>().Bitmap, Facepoints, faceRegions[j], Mask)).Mat;
+                img = new Image<Bgr, Byte>((Bitmap)blurer.BlurPath(img.ToImage<Bgr, byte>().Bitmap, BlurSize, Facepoints, faceRegions[j], Mask)).Mat;
             }
             return img;
 

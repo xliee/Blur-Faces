@@ -65,6 +65,7 @@
     <Compile Include="Analyzer.cs" />
     <Compile Include="blur.cs" />
     <Compile Include="FastBitmap.cs" />
+    <Compile Include="GaussianBlur.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="QuickHull.cs" />
   </ItemGroup>
