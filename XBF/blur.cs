@@ -64,19 +64,28 @@ namespace XBF
                 if (Mask == null)
                 {
                     GraphicsPath gPath = new GraphicsPath();
-                    QuickHull QH = new QuickHull();
-                    List<PointF> fPoints = path.ToList();
-                    fPoints.Add(new PointF(face.X + face.Width, face.Y + face.Height / 2));
-                    fPoints.Add(new PointF(face.X + face.Width / 2, face.Y));
-                    fPoints.Add(new PointF(face.X, face.Y + face.Height / 2));
-                    PointF[] Hull = QH.Run(fPoints).ToArray();
-                    List<PointF> pathS = new List<PointF>();
-                    for (int i = 0; i < Hull.Length; i++)
+                    if (path.Length > 1)
                     {
-                        pathS.Add(scaleP(Hull[i], centerP(path), 1.5f));
+                        QuickHull QH = new QuickHull();
+                        List<PointF> fPoints = path.ToList();
+                        fPoints.Add(new PointF(face.X + face.Width, face.Y + face.Height / 2));
+                        fPoints.Add(new PointF(face.X + face.Width / 2, face.Y));
+                        fPoints.Add(new PointF(face.X, face.Y + face.Height / 2));
+                        PointF[] Hull = QH.Run(fPoints).ToArray();
+                        List<PointF> pathS = new List<PointF>();
+                        for (int i = 0; i < Hull.Length; i++)
+                        {
+                            pathS.Add(scaleP(Hull[i], centerP(path), 1.5f));
+                        }
+                        gPath.AddPolygon(pathS.ToArray());
+                        g.SetClip(gPath);
+                        
                     }
-                    gPath.AddPolygon(pathS.ToArray());
-                    g.SetClip(gPath);
+                    else
+                    {
+                        gPath.AddEllipse(face);
+                        g.SetClip(gPath);
+                    }
                     g.DrawImage(firstb, 0, 0);
                 }
                 else
@@ -91,41 +100,59 @@ namespace XBF
             using (Graphics g = Graphics.FromImage(srcImage))
             {
                 g.SmoothingMode = SmoothingMode.AntiAlias;
-                QuickHull QH = new QuickHull();
-                List<PointF> fPoints = path.ToList();
-                fPoints[fPoints.Count-1] = (new PointF(face.X + face.Width, face.Y + face.Height / 2));
-
-                double c = Math.Atan2(addP(new PointF(face.X + face.Width, face.Y + face.Height / 2), new PointF(face.X + face.Width / 2, face.Y)).Y, addP(new PointF(face.X + face.Width, face.Y + face.Height / 2), new PointF(face.X + face.Width / 2, face.Y)).X);
-                double x_mid = (face.X + face.Width - centerP(path).X) * Math.Cos(c)+ face.X;
-                double y_mid = (face.X + face.Width - centerP(path).X) * Math.Sin(c)+ face.Y;
-                fPoints.Add(new PointF((float)x_mid, (float)y_mid));
-
-                fPoints.Add(new PointF(face.X + face.Width / 2, face.Y));
-
-                c = Math.Atan2(addP(new PointF(face.X + face.Width / 2, face.Y), new PointF(face.X, face.Y + face.Height / 2)).Y, addP(new PointF(face.X + face.Width / 2, face.Y), new PointF(face.X, face.Y + face.Height / 2)).X);
-                x_mid = (face.X + face.Width - centerP(path).X) * Math.Cos(c) + face.X + face.Width / 2;
-                y_mid = (face.X + face.Width-centerP(path).X) * Math.Sin(c) + face.Y + face.Height / 2;
-                fPoints.Add(new PointF((float)x_mid, (float)y_mid));
-
-                fPoints.Add(new PointF(face.X, face.Y + face.Height / 2));
-                PointF[] Hull = QH.Run(fPoints).ToArray();
-                PointF[] pathS = new PointF[Hull.Length];
-                for (int i = 0; i < Hull.Length; i++)
+                if (path.Length > 1)
                 {
-                    pathS[i] = scaleP(Hull[i], centerP(Hull), 1.5f);
+                    QuickHull QH = new QuickHull();
+                    List<PointF> fPoints = path.ToList();
+                    fPoints[fPoints.Count - 1] = (new PointF(face.X + face.Width, face.Y + face.Height / 2));
+
+                    double c = Math.Atan2(addP(new PointF(face.X + face.Width, face.Y + face.Height / 2), new PointF(face.X + face.Width / 2, face.Y)).Y, addP(new PointF(face.X + face.Width, face.Y + face.Height / 2), new PointF(face.X + face.Width / 2, face.Y)).X);
+                    double x_mid = (face.X + face.Width - centerP(path).X) * Math.Cos(c) + face.X;
+                    double y_mid = (face.X + face.Width - centerP(path).X) * Math.Sin(c) + face.Y;
+                    fPoints.Add(new PointF((float)x_mid, (float)y_mid));
+
+                    fPoints.Add(new PointF(face.X + face.Width / 2, face.Y));
+
+                    c = Math.Atan2(addP(new PointF(face.X + face.Width / 2, face.Y), new PointF(face.X, face.Y + face.Height / 2)).Y, addP(new PointF(face.X + face.Width / 2, face.Y), new PointF(face.X, face.Y + face.Height / 2)).X);
+                    x_mid = (face.X + face.Width - centerP(path).X) * Math.Cos(c) + face.X + face.Width / 2;
+                    y_mid = (face.X + face.Width - centerP(path).X) * Math.Sin(c) + face.Y + face.Height / 2;
+                    fPoints.Add(new PointF((float)x_mid, (float)y_mid));
+
+                    fPoints.Add(new PointF(face.X, face.Y + face.Height / 2));
+                    PointF[] Hull = QH.Run(fPoints).ToArray();
+                    PointF[] pathS = new PointF[Hull.Length];
+                    for (int i = 0; i < Hull.Length; i++)
+                    {
+                        pathS[i] = scaleP(Hull[i], centerP(Hull), 1.5f);
+                    }
+                    GraphicsPath gPath = new GraphicsPath();
+                    gPath.AddPolygon(pathS);
+                    g.SetClip(gPath);
+                    PathGradientBrush bush = new PathGradientBrush(gPath);
+                    bush.CenterPoint = centerP(pathS);
+                    bush.CenterColor = Color.FromArgb(255, Color.FromArgb(0, 0, 255));
+                    Blend blnd = new Blend();
+                    blnd.Positions = new float[] { 0f, .15f, .25f, .5f, .75f, 1f };
+                    blnd.Factors = new float[] { .05f, .5f, .95f, 1f, 1f, 1f };
+                    bush.Blend = blnd;
+                    bush.SurroundColors = new Color[] { Color.FromArgb(255, Color.FromArgb(255, 255, 0)) };
+                    g.FillPolygon(bush, pathS);
                 }
-                GraphicsPath gPath = new GraphicsPath();
-                gPath.AddPolygon(pathS);
-                g.SetClip(gPath);
-                PathGradientBrush bush = new PathGradientBrush(gPath);
-                bush.CenterPoint = centerP(pathS);
-                bush.CenterColor = Color.FromArgb(255, Color.FromArgb(0, 0, 255));
-                Blend blnd = new Blend();
-                blnd.Positions = new float[] { 0f, .15f, .25f, .5f, .75f, 1f };
-                blnd.Factors = new float[] { .05f, .5f, .95f, 1f, 1f, 1f };
-                bush.Blend = blnd;
-                bush.SurroundColors = new Color[] { Color.FromArgb(255, Color.FromArgb(255, 255, 0)) };
-                g.FillPolygon(bush, pathS);
+                else
+                {
+                    GraphicsPath gPath = new GraphicsPath();
+                    gPath.AddEllipse(face);
+                    g.SetClip(gPath);
+                    PathGradientBrush bush = new PathGradientBrush(gPath);
+                    bush.CenterPoint = new PointF(face.X+face.Width/2, face.Y+face.Height/2);
+                    bush.CenterColor = Color.FromArgb(255, Color.FromArgb(0, 0, 255));
+                    Blend blnd = new Blend();
+                    blnd.Positions = new float[] { 0f, .15f, .25f, .5f, .75f, 1f };
+                    blnd.Factors = new float[] { .05f, .5f, .95f, 1f, 1f, 1f };
+                    bush.Blend = blnd;
+                    bush.SurroundColors = new Color[] { Color.FromArgb(255, Color.FromArgb(255, 255, 0)) };
+                    g.FillEllipse(bush, face);
+                }
                 return srcImage;
             }
         }
