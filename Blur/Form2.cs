@@ -19,11 +19,7 @@ using System.Runtime.InteropServices;
 using Emgu.CV.Dnn;
 using System.IO;
 using System.Diagnostics;
-
-
 using XBF;
-
-
 namespace Blur
 {
     public partial class Form2 : Form
@@ -114,7 +110,7 @@ namespace Blur
                 Analyzer analyzer = new Analyzer(false,  Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location) + @"\Assets\res10_300x300_ssd_iter_140000.caffemodel",  Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location) + @"\Assets\deploy.prototxt",  Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location) + @"\Assets\lbfmodel.yaml");
 
                 
-                pictureBox1.Image = analyzer.BlurFaceWithLandmark(imageFrame.Mat, 20).ToImage<Bgr, Byte>().Bitmap;
+                pictureBox1.Image = analyzer.BlurFaceWithLandmark(imageFrame.Mat).ToImage<Bgr, Byte>().Bitmap;
 
             }
         }
@@ -124,20 +120,19 @@ namespace Blur
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
                 string path = openFileDialog1.FileName;
-                Image<Bgr, Byte> imageFrame = new Image<Bgr, Byte>(Image.FromFile(path) as Bitmap);
-
 
                 Analyzer analyzer = new Analyzer(false, Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location) + @"\Assets\res10_300x300_ssd_iter_140000.caffemodel", Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location) + @"\Assets\deploy.prototxt", Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location) + @"\Assets\lbfmodel.yaml");
-                
+
+
+
+                Bitmap frame = (Bitmap)Image.FromFile(path);
+                Image<Bgr, Byte> imageFrame = new Image<Bgr, Byte>(frame);
+
                 List<Rectangle> Faces = analyzer.getFaceRegions(imageFrame.Mat, Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location) + @"\Assets\deploy.prototxt", Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location) + @"\Assets\res10_300x300_ssd_iter_140000.caffemodel");
                 List<VectorOfVectorOfPointF> Landmarks = analyzer.getLandmarks(imageFrame.Mat, Faces, Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location) + @"\Assets\lbfmodel.yaml");
 
                 Bitmap Mask = analyzer.getOpMask(imageFrame.Mat, Faces, Landmarks);
-                Mat Final = analyzer.BlurFaceWithLandmark(imageFrame.Mat, 12, Faces, Landmarks, Mask);
-
-           
-
-
+                Mat Final = analyzer.BlurFaceWithLandmark(imageFrame.Mat, Faces, Landmarks, Mask);
                 pictureBox1.Image = Final.ToImage<Bgr, Byte>().Bitmap;
 
             }
