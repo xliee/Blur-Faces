@@ -79,7 +79,7 @@ namespace Blur
                     //    frame = (Bitmap)blurer.ClipToCircle(frame2.Bitmap, frame, new Point(face.X + face.Width / 2, face.Y + face.Height / 2), face.Width / 2, face);
 
                     //}
-                    Analyzer analyzer = new Analyzer(true, ssdFile : Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location) + @"\Assets\res10_300x300_ssd_iter_140000.caffemodel", ssdProtoFile : Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location) + @"\Assets\deploy.prototxt", facemarkFileName : Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location) + @"\Assets\lbfmodel.yaml");
+                    Analyzer analyzer = new Analyzer(true, Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location) + @"\Assets\res10_300x300_ssd_iter_140000.caffemodel", Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location) + @"\Assets\deploy.prototxt", Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location) + @"\Assets\lbfmodel.yaml");
                     //frame = analyzer.BlurFaceOval(imageFrame.Mat).ToImage<Bgr, Byte>().Bitmap;
                     pictureBox1.Image = frame;
                 }

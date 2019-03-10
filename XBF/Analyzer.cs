@@ -205,6 +205,16 @@ namespace XBF
 
         }
 
+        /// <summary>
+        /// Get Blur Opacity mask 
+        /// </summary>
+        /// <param name="img">Base Image</param>
+        /// <param name="faces">Faces Matrix</param>
+        /// <param name="landmarks_"></param>
+        /// <param name="ssdFile_"></param>
+        /// <param name="ssdProtoFile_"></param>
+        /// <param name="facemarkFileName_"></param>
+        /// <returns></returns>
 
         public Bitmap getOpMask(Bitmap img, List<Rectangle> faces = null, PointF[][][] landmarks_ = null, String ssdFile_ = null, String ssdProtoFile_ = null, String facemarkFileName_ = null)
         {
