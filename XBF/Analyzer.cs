@@ -6,6 +6,7 @@ using Emgu.CV.Util;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 
 namespace XBF
@@ -18,7 +19,7 @@ namespace XBF
         private String ssdProtoFile;
         private String facemarkFileName;
 
-        public Analyzer(bool Debug = false, String ssdFile = "res10_300x300_ssd_iter_140000.caffemodel", String ssdProtoFile = "deploy.prototxt", String facemarkFileName = "deploy.prototxt")
+        public Analyzer(bool Debug = false, String ssdFile = null, String ssdProtoFile = null, String facemarkFileName = null)
         {
             this.DEBUG = Debug;
             this.ssdFile = ssdFile;
@@ -26,6 +27,7 @@ namespace XBF
             this.facemarkFileName = facemarkFileName;
             blurer = new blur();
         }
+
         /// <summary>
         /// Get a list of rectangles of the faces.
         /// </summary>
@@ -70,6 +72,7 @@ namespace XBF
             }
             return faceRegions;
         }
+
         /// <summary>
         /// Get a list of the landmarks of the faces.
         /// </summary>
@@ -104,18 +107,19 @@ namespace XBF
             }
             return landmarks;
         }
+
         /// <summary>
         /// Blur faces inside an oval of the rectangle
         /// </summary>
         /// <param name="img">Source image</param>
         /// <param name="faceRegions">If Faces are given then it not recalculates them</param>
         /// <returns> Returns the image with the faces blurred inside the rectangle cropped to an oval</returns>
-        public Mat BlurFaceOval(Mat img, List<Rectangle> faces = null)
+        public Mat BlurFaceOval(Mat img, List<Rectangle> faces = null, String ssdFile_ = null, String ssdProtoFile_ = null)
         {
             int imgDim = 300;
             MCvScalar meanVal = new MCvScalar(104, 177, 123);
-            String ssdFile = this.ssdFile;
-            String ssdProtoFile = this.ssdProtoFile;
+            String ssdFile = (ssdFile_ == null ? this.ssdFile : ssdFile_);
+            String ssdProtoFile = (ssdProtoFile_ == null ? this.ssdProtoFile : ssdProtoFile_);
 
             List<Rectangle> faceRegions = ((faces==null)?getFaceRegions(img, ssdProtoFile, ssdFile, imgDim):faces);
            
@@ -140,7 +144,7 @@ namespace XBF
         /// </summary>
         /// <param name="img">Source image</param>
         /// <returns> Returns the image with the faces blurred inside the landmarks of each face</returns>
-        public Mat BlurFaceWithLandmark(Mat img, List<Rectangle> faces = null, List<VectorOfVectorOfPointF> landmarks_ = null, String ssdFile_ = null, String ssdProtoFile_ = null, String facemarkFileName_ = null)
+        public Mat BlurFaceWithLandmark(Mat img, List<Rectangle> faces = null, List<VectorOfVectorOfPointF> landmarks_ = null, Bitmap Mask = null, String ssdFile_ = null, String ssdProtoFile_ = null, String facemarkFileName_ = null)
         {
             int imgDim = 300;
             MCvScalar meanVal = new MCvScalar(104, 177, 123);
@@ -151,7 +155,6 @@ namespace XBF
             List<Rectangle> faceRegions = ((faces == null) ? getFaceRegions(img, ssdProtoFile, ssdFile, imgDim) : faces);
             List<VectorOfVectorOfPointF> landmarks = ((landmarks_ == null) ? getLandmarks(img, faceRegions, facemarkFileName) : landmarks_);
             
-            int numFaces = faceRegions.Count;
             for (int j = 0; j <= faceRegions.Count - 1; j++)
             {
                 if(DEBUG)
@@ -169,16 +172,61 @@ namespace XBF
                                 Console.WriteLine(ex.ToString());
                             }
                     }
-                
                 PointF[] Facepoints = landmarks[j].ToArrayOfArray()[0];
                 if(DEBUG)
-                    CvInvoke.DrawContours(img, new VectorOfPointF(Facepoints), 2, new MCvScalar(255,0,0));
-                
+                    try
+                    {
+                        CvInvoke.DrawContours(img, new VectorOfPointF(Facepoints), 2, new MCvScalar(255,0,0));
+                    }
+                    catch (Emgu.CV.Util.CvException ex)
+                    {
+                        Console.WriteLine(ex.ToString());
+                    }
                 // Blur Path
-                img = new Image<Bgr, Byte>((Bitmap)blurer.BlurPath(img.ToImage<Bgr, byte>().Bitmap, Facepoints, faceRegions[j])).Mat;
+                img = new Image<Bgr, Byte>((Bitmap)blurer.BlurPath(img.ToImage<Bgr, byte>().Bitmap, Facepoints, faceRegions[j], Mask)).Mat;
             }
             return img;
 
         }
+
+
+        public Bitmap getOpMask(Mat img, List<Rectangle> faces = null, List<VectorOfVectorOfPointF> landmarks_ = null, String ssdFile_ = null, String ssdProtoFile_ = null, String facemarkFileName_ = null)
+        {
+            int imgDim = 300;
+            MCvScalar meanVal = new MCvScalar(104, 177, 123);
+            String ssdFile = (ssdFile_ == null ? this.ssdFile : ssdFile_);
+            String ssdProtoFile = (ssdProtoFile_ == null ? this.ssdProtoFile : ssdProtoFile_);
+            String facemarkFileName = (facemarkFileName_ == null ? this.facemarkFileName : facemarkFileName_);
+
+            List<Rectangle> faceRegions = ((faces == null) ? getFaceRegions(img, ssdProtoFile, ssdFile, imgDim) : faces);
+            List<VectorOfVectorOfPointF> landmarks = ((landmarks_ == null) ? getLandmarks(img, faceRegions, facemarkFileName) : landmarks_);
+            
+            Bitmap dstImage = new Bitmap(img.ToImage<Bgr, byte>().Width, img.ToImage<Bgr, byte>().Height, PixelFormat.Format32bppArgb);
+            for (int j = 0; j <= faceRegions.Count - 1; j++)
+            {
+                if (DEBUG)
+                    CvInvoke.Rectangle(img, faceRegions[j], new MCvScalar(0, 255, 0));
+                if (DEBUG)
+                    for (int i = 0; i < landmarks[i].Size; i++)
+                    {
+                        using (VectorOfPointF vpf = landmarks[j][i])
+                            try
+                            {
+                                FaceInvoke.DrawFacemarks(img, vpf, new MCvScalar(255, 0, 0));
+                            }
+                            catch (Emgu.CV.Util.CvException ex)
+                            {
+                                Console.WriteLine(ex.ToString());
+                            }
+                    }
+                PointF[] Facepoints = landmarks[j].ToArrayOfArray()[0];
+                if (DEBUG)
+                    CvInvoke.DrawContours(img, new VectorOfPointF(Facepoints), 2, new MCvScalar(255, 0, 0));
+                dstImage = blurer.OpMask(dstImage, Facepoints, faceRegions[j]);
+            }
+            return dstImage;
+
+        }
+
     }
 }

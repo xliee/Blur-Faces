@@ -1,10 +1,13 @@
 ﻿using Emgu.CV;
+using Emgu.CV.Structure;
 using Emgu.CV.Util;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 using System.Linq;
+
 
 namespace XBF
 {
@@ -13,138 +16,146 @@ namespace XBF
         public Image ClipToCircle(Image srcImage, Image blurImage, PointF center, float radius, Rectangle box)
         {
             Image dstImage = new Bitmap(srcImage.Width, srcImage.Height, srcImage.PixelFormat);
-
             using (Graphics g = Graphics.FromImage(dstImage))
             {
-                RectangleF r = new RectangleF(center.X - radius, center.Y - radius,
-                                                         radius * 2, radius * 2);
-
-                // enables smoothing of the edge of the circle (less pixelated)
+                RectangleF r = new RectangleF(center.X - radius, center.Y - radius,radius * 2, radius * 2);
                 g.SmoothingMode = SmoothingMode.AntiAlias;
-
-                // fills background color
-                //using (Brush br = new SolidBrush(backGround))
-                //{
-                //    g.FillRectangle(br, 0, 0, dstImage.Width, dstImage.Height);
-                //}
-
                 g.DrawImage(srcImage, 0, 0);
-                // adds the new ellipse & draws the image again 
                 GraphicsPath path = new GraphicsPath();
-
-                //path.AddEllipse(r);
                 path.AddEllipse(box);
                 g.SetClip(path);
                 g.DrawImage(blurImage, 0, 0);
-
                 return dstImage;
             }
         }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="srcImage"></param>
-        /// <param name="path"></param>
-        /// <param name="face"></param>
-        /// <returns></returns>
-        public Image BlurPath(Image srcImage, PointF[] path, Rectangle face)
+        public Image BlurRectangle(Image srcImage, Rectangle face)
         {
             Bitmap firstb = FastBoxBlur(srcImage, 20, face);
             Image dstImage = new Bitmap(srcImage.Width, srcImage.Height, srcImage.PixelFormat);
+            using (Graphics g = Graphics.FromImage(dstImage))
+            {
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+                g.DrawImage(srcImage, 0, 0);
+                GraphicsPath Gpath = new GraphicsPath();
+                Gpath.AddEllipse(face);
+                g.SetClip(Gpath);
+                g.DrawImage(firstb, 0, 0);
+                return dstImage;
+            }
+        }
+        public Image BlurPath(Image srcImage, PointF[] path, Rectangle face, Bitmap Mask)
+        {
+            Bitmap firstb = new Bitmap(srcImage);
+            if (Mask == null)
+            {
+                firstb = FastBoxBlur(srcImage, 20, face);
+            }
+            else
+            {
+                firstb = FastBoxBlur(srcImage, 30, new Rectangle(face.X - 30, face.Y - 25, face.Width + 30, face.Height + 40));
+            }
+            Image dstImage = new Bitmap(srcImage.Width, srcImage.Height, PixelFormat.Format32bppArgb);
 
             using (Graphics g = Graphics.FromImage(dstImage))
             {
                 g.SmoothingMode = SmoothingMode.AntiAlias;
                 g.DrawImage(srcImage, 0, 0);
-                
+                if (Mask == null)
+                {
+                    GraphicsPath gPath = new GraphicsPath();
+                    QuickHull QH = new QuickHull();
+                    List<PointF> fPoints = path.ToList();
+                    fPoints.Add(new PointF(face.X + face.Width, face.Y + face.Height / 2));
+                    fPoints.Add(new PointF(face.X + face.Width / 2, face.Y));
+                    fPoints.Add(new PointF(face.X, face.Y + face.Height / 2));
+                    PointF[] Hull = QH.Run(fPoints).ToArray();
+                    List<PointF> pathS = new List<PointF>();
+                    for (int i = 0; i < Hull.Length; i++)
+                    {
+                        pathS.Add(scaleP(Hull[i], centerP(path), 1.5f));
+                    }
+                    gPath.AddPolygon(pathS.ToArray());
+                    g.SetClip(gPath);
+                    g.DrawImage(firstb, 0, 0);
+                }
+                else
+                    g.DrawImage(applyOpMask(firstb, Mask), 0, 0);
+            }
+            return dstImage;
+        }
 
-                GraphicsPath gPath = new GraphicsPath();
+
+        public Bitmap OpMask(Bitmap srcImage, PointF[] path, Rectangle face)
+        {
+            using (Graphics g = Graphics.FromImage(srcImage))
+            {
+                g.SmoothingMode = SmoothingMode.AntiAlias;
                 QuickHull QH = new QuickHull();
                 List<PointF> fPoints = path.ToList();
                 fPoints.Add(new PointF(face.X + face.Width, face.Y + face.Height / 2));
                 fPoints.Add(new PointF(face.X + face.Width / 2, face.Y));
                 fPoints.Add(new PointF(face.X, face.Y + face.Height / 2));
                 PointF[] Hull = QH.Run(fPoints).ToArray();
-
-                //CvInvoke.PointPolygonTest(new VectorOfPointF(path), path[i], false
-                //MEAN
-                float[] X = new float[path.Length];
-                float[] Y = new float[path.Length];
-                for (int i = 0; i < path.Length; i++)
+                PointF[] pathS = new PointF[Hull.Length];
+                for (int i = 0; i < Hull.Length; i++)
                 {
-                    X[i] = path[i].X;
-                    Y[i] = path[i].Y;
+                    pathS[i] = scaleP(Hull[i], centerP(Hull), 1.6f);
                 }
-                float sumX = 0;
-                float sumY = 0;
-                for (int i = 0; i < X.Length; i++)
-                    sumX += X[i];
-                for (int i = 0; i < Y.Length; i++)
-                    sumY += Y[i];
-
-                float resultX = sumX / X.Length;
-                float resultY = sumY / Y.Length;
-                
-                PointF center = new PointF(resultX, resultY);
-                //List<PointF> pathf = new List<PointF>();
-                List<PointF> pathn = new List<PointF>();
-                for (int i = 0; i< Hull.Length; i++)
-                {
-                    PointF v2 = substractP(Hull[i], center); // get a vector to v relative to the centerpoint
-                    PointF v2_scaled = multiplyP(v2, 1.05f); // scale the cp-relative-vector
-                    pathn.Add(addP(v2_scaled, center)); // translate the scaled vector back
-                }
-
-                //g.DrawLines(new Pen(new SolidBrush(Color.Green), 2), Hull);
-                //g.DrawLines(new Pen(new SolidBrush(Color.Red), 4), pathn.ToArray());
-                gPath.AddPolygon(pathn.ToArray());
+                GraphicsPath gPath = new GraphicsPath();
+                gPath.AddPolygon(pathS);
                 g.SetClip(gPath);
                 PathGradientBrush bush = new PathGradientBrush(gPath);
-                bush.CenterPoint = center;
-                bush.CenterColor = Color.FromArgb(100, Color.BlueViolet);
-                bush.SurroundColors = new Color[] { Color.FromArgb(0, Color.BlueViolet) };
-                g.FillPolygon(bush, pathn.ToArray());
-
-                gPath.ClearMarkers();
-
-                gPath.AddPolygon(Hull);
-                g.SetClip(gPath);
-                g.DrawImage(firstb, 0, 0);
-
-                
-                
-                return dstImage;
+                bush.CenterPoint = centerP(pathS);
+                bush.CenterColor = Color.FromArgb(255, Color.FromArgb(0, 0, 255));
+                Blend blnd = new Blend();
+                blnd.Positions = new float[] { 0f, .25f, .5f, .75f, 1f };
+                blnd.Factors = new float[] { 0.2f, 0.5f, 1f, 1f, 1f };
+                bush.Blend = blnd;
+                bush.SurroundColors = new Color[] { Color.FromArgb(255, Color.FromArgb(255, 255, 0)) };
+                g.FillPolygon(bush, pathS);
+                return srcImage;
             }
         }
-        public Image OpMask(Image srcImage, PointF[] Hull, Rectangle face)
+        public Bitmap applyOpMask(Bitmap input, Bitmap mask)
         {
-            
-            Image dstImage = new Bitmap(srcImage.Width, srcImage.Height, srcImage.PixelFormat);
 
-            using (Graphics g = Graphics.FromImage(dstImage))
+            Bitmap output = new Bitmap(input.Width, input.Height, PixelFormat.Format32bppArgb);
+            var rect = new Rectangle(0, 0, input.Width, input.Height);
+            var bitsMask = mask.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+            var bitsInput = input.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+            var bitsOutput = output.LockBits(rect, ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
+            unsafe
             {
-                g.SmoothingMode = SmoothingMode.AntiAlias;
-                g.DrawImage(srcImage, 0, 0);
-                GraphicsPath gPath = new GraphicsPath();
-                gPath.AddPolygon(Hull);
-                g.SetClip(gPath);
-                Bitmap firstb = getOpMask(srcImage, Hull);
-                g.DrawImage(firstb, 0, 0);
-
-
-
-                return dstImage;
+                for (int y = 0; y < input.Height; y++)
+                {
+                    byte* ptrMask = (byte*)bitsMask.Scan0 + y * bitsMask.Stride;
+                    byte* ptrInput = (byte*)bitsInput.Scan0 + y * bitsInput.Stride;
+                    byte* ptrOutput = (byte*)bitsOutput.Scan0 + y * bitsOutput.Stride;
+                    for (int x = 0; x < input.Width; x++)
+                    {
+                        ptrOutput[4 * x] = ptrInput[4 * x];           // blue
+                        ptrOutput[4 * x + 1] = ptrInput[4 * x + 1];   // green
+                        ptrOutput[4 * x + 2] = ptrInput[4 * x + 2];   // red
+                        ptrOutput[4 * x + 3] = ptrMask[4 * x];        // alpha
+                    }
+                }
             }
+            mask.UnlockBits(bitsMask);
+            input.UnlockBits(bitsInput);
+            output.UnlockBits(bitsOutput);
+
+            return output;
         }
-        //getOpMask(srcImage, pathn.ToArray())
-        public Bitmap getOpMask(Image srcImage, PointF[] path, Image BlankMask=null)
+
+
+        private PointF centerP(PointF[] Points)
         {
-            float[] X = new float[path.Length];
-            float[] Y = new float[path.Length];
-            for (int i = 0; i < path.Length; i++)
+            float[] X = new float[Points.Length];
+            float[] Y = new float[Points.Length];
+            for (int i = 0; i < Points.Length; i++)
             {
-                X[i] = path[i].X;
-                Y[i] = path[i].Y;
+                X[i] = Points[i].X;
+                Y[i] = Points[i].Y;
             }
             float sumX = 0;
             float sumY = 0;
@@ -156,21 +167,13 @@ namespace XBF
             float resultX = sumX / X.Length;
             float resultY = sumY / Y.Length;
 
-            PointF center = new PointF(resultX, resultY);
-
-            Image mask = (BlankMask == null ? new Bitmap(srcImage.Width, srcImage.Height, srcImage.PixelFormat) : BlankMask);
-            using (Graphics g = Graphics.FromImage(mask))
-            {
-                GraphicsPath gPath = new GraphicsPath();
-                gPath.AddPolygon(path.ToArray());
-                g.SetClip(gPath);
-                PathGradientBrush bush = new PathGradientBrush(gPath);
-                bush.CenterPoint = center;
-                bush.CenterColor = Color.FromArgb(100, Color.BlueViolet);
-                bush.SurroundColors = new Color[] { Color.FromArgb(0, Color.BlueViolet) };
-                g.FillPolygon(bush, path.ToArray());
-            }
-            return mask as Bitmap;
+            return new PointF(resultX, resultY);
+        }
+        private PointF scaleP(PointF Point, PointF Center, float Scale)
+        {
+            PointF v2 = substractP(Point, Center); // get a vector to v relative to the centerpoint
+            PointF v2_scaled = multiplyP(v2, Scale); // scale the cp-relative-vector
+            return addP(v2_scaled, Center);
         }
         private PointF substractP(PointF p1, PointF p2)
         {
@@ -188,40 +191,8 @@ namespace XBF
         {
             return (float)Math.Sqrt(Math.Pow(p1.X+ p2.X, 2) + Math.Pow(p1.Y + p2.Y, 2));
         }
-        public Image BlurRectangle(Image srcImage, Rectangle face)
-        {
-            Bitmap firstb =  FastBoxBlur(srcImage, 20, face);
-            Image dstImage = new Bitmap(srcImage.Width, srcImage.Height, srcImage.PixelFormat);
 
-            using (Graphics g = Graphics.FromImage(dstImage))
-            {
-                //RectangleF r = new RectangleF(center.X - radius, center.Y - radius,radius * 2, radius * 2);
-
-                // enables smoothing of the edge of the circle (less pixelated)
-                g.SmoothingMode = SmoothingMode.AntiAlias;
-
-                // fills background color
-                //using (Brush br = new SolidBrush(backGround))
-                //{
-                //    g.FillRectangle(br, 0, 0, dstImage.Width, dstImage.Height);
-                //}
-
-                g.DrawImage(srcImage, 0, 0);
-                // adds the new ellipse & draws the image again 
-                GraphicsPath Gpath = new GraphicsPath();
-                //ppath.AddPolygon(path);
-                //path.AddEllipse(r);
-                Gpath.AddEllipse(face);
-                //g.DrawLines(new Pen(new SolidBrush(Color.Green), 1), path);
-
-                g.SetClip(Gpath);
-                g.DrawImage(firstb, 0, 0);
-
-                return dstImage;
-            }
-        }
-
-
+     
         private Bitmap Convolve(Bitmap input, float[,] filter, Rectangle box)
         {
             //Find center of filter
