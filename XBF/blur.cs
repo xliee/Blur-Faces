@@ -58,54 +58,33 @@ namespace XBF
                 g.DrawImage(srcImage, 0, 0);
                 
 
-                GraphicsPath ppath = new GraphicsPath();
-                //POINTS
-                float[] X = new float[path.Length];
-                float[] Y = new float[path.Length];
-                for (int i = 0; i<path.Length;i++)
+                GraphicsPath gPath = new GraphicsPath();
+                QuickHull QH = new QuickHull();
+                List<PointF> fPoints = path.ToList();
+                fPoints.Add(new PointF(face.X + face.Width, face.Y + face.Height / 2));
+                fPoints.Add(new PointF(face.X + face.Width / 2, face.Y));
+                fPoints.Add(new PointF(face.X, face.Y + face.Height / 2));
+                PointF[] Hull = QH.Run(fPoints).ToArray();
+
+                for(int i = 0; i< Hull.Length, i++)
                 {
-                    X[i] = path[i].X;
-                    Y[i] = path[i].Y;
+
                 }
+                gPath.AddClosedCurve(Hull,1);
+                //g.DrawLines(new Pen(new SolidBrush(Color.Green), 2), Hull);
+                                
 
-                //MEAN
-                float sumX = 0;
-                float sumY = 0;
-                for (int i = 0; i < X.Length; i++)
-                    sumX += X[i];
-                for (int i = 0; i < Y.Length; i++)
-                    sumY += Y[i];
-
-                float resultX = sumX / X.Length;
-                float resultY = sumY / Y.Length;
-                List<PointF> pathf = new List<PointF>();
-                for(int i = 0; i < path.Length; i++)
-                {
-                   if(CvInvoke.PointPolygonTest(new VectorOfPointF(path), path[i], false)!=1)
-                    {
-                        pathf.Add(path[i]);
-                    }
-                }
-                PointF center = new PointF(resultX, resultY);
-
+                g.SetClip(gPath);
                 
-
-
-                
-                g.DrawLines(new Pen(new SolidBrush(Color.Red), 3), pathf.ToArray());
-
-
-                g.DrawEllipse(new Pen(new SolidBrush(Color.Red), 5), center.X-10, center.Y-10, 10, 10);
-
-
-
-                g.SetClip(ppath);
                 g.DrawImage(firstb, 0, 0);
 
                 return bluredImage;
             }
         }
-
+        private float disP(PointF p1, PointF p2)
+        {
+            return (float)Math.Sqrt(Math.Pow(p1.X+ p2.X, 2) + Math.Pow(p1.Y + p2.Y, 2));
+        }
         public Image BlurRectangle(Image srcImage, Rectangle face)
         {
             Bitmap firstb =  FastBoxBlur(srcImage, 20, face);

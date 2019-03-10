@@ -66,6 +66,7 @@
     <Compile Include="blur.cs" />
     <Compile Include="FastBitmap.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="QuickHull.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="icon.ico" />

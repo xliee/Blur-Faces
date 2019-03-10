@@ -154,7 +154,8 @@ namespace XBF
             int numFaces = faceRegions.Count;
             for (int j = 0; j <= faceRegions.Count - 1; j++)
             {
-                CvInvoke.Rectangle(img, faceRegions[j], new MCvScalar(0, 255, 0));
+                if(DEBUG)
+                    CvInvoke.Rectangle(img, faceRegions[j], new MCvScalar(0, 255, 0));
                 if(DEBUG)
                     for (int i = 0; i < landmarks[i].Size; i++)
                     {
