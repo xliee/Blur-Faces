@@ -1,7 +1,18 @@
 # xFaceBlur
 Detects Faces in photos and blur them
+## Dependences
+### Emgu.CV
+https://www.nuget.org/packages/EMGU.CV/
+```
+Install-Package Emgu.CV -Version 4.0.1.3373
+```
+### ZedGraph
+https://www.nuget.org/packages/ZedGraph/
+```
+Install-Package ZedGraph -Version 5.1.7
+```
 
-## example:
+## Example:
 
 ```csharp
 //Load Image
