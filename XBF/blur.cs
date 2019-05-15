@@ -13,6 +13,8 @@ namespace XBF
 {
     class blur
     {
+
+
         public Image ClipToCircle(Image srcImage, Image blurImage, PointF center, float radius, Rectangle box)
         {
             Image dstImage = new Bitmap(srcImage.Width, srcImage.Height, srcImage.PixelFormat);
@@ -60,7 +62,7 @@ namespace XBF
             using (Graphics g = Graphics.FromImage(dstImage))
             {
                 g.SmoothingMode = SmoothingMode.AntiAlias;
-                g.DrawImage(srcImage, 0, 0);
+                g.DrawImage(srcImage, 0, 0, srcImage.Width, srcImage.Height);
                 if (Mask == null)
                 {
                     GraphicsPath gPath = new GraphicsPath();
